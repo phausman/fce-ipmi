@@ -86,7 +86,7 @@ class Application:
             with open(self.machine_config) as file:
                 machines = yaml.load(file, Loader=yaml.FullLoader)
 
-        except (FileNotFoundError, PermissionError) as e:
+        except (FileNotFoundError, PermissionError, NotADirectoryError) as e:
             self.logger.error(
                 f"Cannot open '{self.machine_config}' file "
                 f"with machines' BMC config"
