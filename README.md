@@ -64,7 +64,7 @@ available commands, parameters, machine names etc. [NOT IMPLEMENTED]
 
 `-f, --machine-config` Path to the YAML file with machines' configuration.
 
-`--no-color`           Disable colored output. [NOT IMPLEMENTED]
+`--no-color`           Disable colored output.
 
 `-v, --verbose`        Be more verbose. [NOT IMPLEMENTED]
 

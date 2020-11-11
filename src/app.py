@@ -1,3 +1,4 @@
+import colorlog
 import fnmatch
 import logging
 import logging.handlers
@@ -36,22 +37,15 @@ class Application:
         self.verbose = verbose
 
         # Configure logger
-        self.logger = self._get_logger()
+        self.logger = (
+            self._get_logger() if no_color else self._get_colored_logger()
+        )
 
         # Read YAML file containing BMC details of machines
         self.machines = self._read_machines_config()
 
     def _get_logger(self):
-        """Create and return a logger object.
-
-        The logger can be used in this class as follows:
-
-        self.logger.critical("This is critical")
-        self.logger.error("This is error")
-        self.logger.warning("This is warning")
-        self.logger.info("This is info")
-        self.logger.debug("This is debug")
-        """
+        """Create and return a logger object"""
 
         # Create a logger
         logger = logging.getLogger(__name__)
@@ -74,6 +68,30 @@ class Application:
 
         return logger
 
+    def _get_colored_logger(self):
+        """Create and return a colored logger object"""
+
+        # Create a logger
+        logger = colorlog.getLogger(__name__)
+
+        if self.debug:
+            logger.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(logging.INFO)
+
+        # Create console formatter
+        CONSOLE_FORMAT = "%(log_color)s%(message)s"
+        console_formatter = colorlog.ColoredFormatter(fmt=CONSOLE_FORMAT)
+
+        # Create a console handler: log to console
+        console_handler = colorlog.StreamHandler()
+
+        # Configure and register console handler
+        console_handler.setFormatter(console_formatter)
+        logger.addHandler(console_handler)
+
+        return logger
+
     def _read_machines_config(self) -> dict:
         """Read YAML machine config file
 
@@ -88,7 +106,7 @@ class Application:
                 machines = yaml.load(file, Loader=yaml.FullLoader)
 
         except (FileNotFoundError, PermissionError, NotADirectoryError) as e:
-            self.logger.error(
+            self.logger.critical(
                 f"Cannot open '{self.machine_config}' file "
                 f"with machines' BMC config"
             )
@@ -160,7 +178,7 @@ class Application:
                 self._is_glob_pattern(machine) is False
             ):
                 message = (
-                    "Ambiguous machine name provided\n"
+                    "Ambiguous machine name provided. "
                     "Found {} machines matching '{}' name:\n  {}\n"
                     "Refine the '{}' machine name pattern by adding more "
                     "details to target a specific machine.\n"
@@ -176,13 +194,13 @@ class Application:
                     )
                 )
 
-                self.logger.error(message)
+                self.logger.warning(message)
                 return []
 
         # None of the machine names matches, return an empty list
         if len(matching_machines) == 0:
             message = (
-                "No machines matching name '{}' found\n"
+                "No machines matching name '{}' found. "
                 "Available machines:\n  {}".format(
                     "' or '".join(machines), "\n  ".join(self.machines)
                 )
@@ -265,7 +283,7 @@ class Application:
                     value = file.read().strip()
 
             except (FileNotFoundError, PermissionError) as e:
-                self.logger.error(
+                self.logger.critical(
                     f"Cannot open '{file_path}' file referred in "
                     f"the '{key}' value"
                 )
@@ -287,7 +305,7 @@ class Application:
         if command is self.Command.CONSOLE and (
             self._is_glob_pattern(machines[0])
         ):
-            self.logger.error(
+            self.logger.warning(
                 "Glob patterns for MACHINE-NAME are not supported in "
                 "this command"
             )

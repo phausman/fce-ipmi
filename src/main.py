@@ -42,7 +42,7 @@ def print_version(ctx, param, value):
     "--no-color",
     is_flag=True,
     default=False,
-    help="Disable colored output. [NOT IMPLEMENTED]",
+    help="Disable colored output.",
 )
 @click.option(
     "--verbose",
