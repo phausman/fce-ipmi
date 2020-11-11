@@ -1,7 +1,6 @@
 # Introduction
 
-`fce-ipmi` is a tool that simplifies interaction with IPMI utilities like
-`ipmitool` or `ipmiconsole`.
+`fce-ipmi` simplifies interaction with `ipmitool`.
 
 Supported commands:
 - `power {on|off|cycle|stat}` controls the power of the machine(s),
@@ -34,8 +33,8 @@ sudo python3 setup.py install
 
 `fce-ipmi [OPTIONS] COMMAND [ARGS]...`
 
-This tool is a wrapper for IPMI-related utilities: `ipmitool` and 
-`ipmiconsole`. Therefore you must have these tools installed in your system.
+`fce-ipmi` is a wrapper for `ipmitool` utility. Therefore you must have
+`ipmitool` installed in your system.
 
 The wrapper pulls necessary information about the machines, such as BMC
 hostname / IP address, username and password from the YAML file. By default
@@ -193,8 +192,8 @@ Set boot to disk for all machines in availability zones `AZ1` and `AZ2`
 This command opens a Serial-over-LAN console with a specified machine. You can 
 exit the console by typing '&.' sequence.
 
-This command is a wrapper for `ipmiconsole`. The wrapper executes `ipmiconsole` 
-with relevant options such as a username and password.
+This command is a wrapper for `ipmitool sol activate`. The wrapper executes
+`ipmitool` with relevant options such as a username and password.
 
 ### Examples of `console` command
 
