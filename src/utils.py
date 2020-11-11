@@ -71,3 +71,7 @@ class Ipmitool:
     def bootdev_pxe(self) -> (bool, str):
         self.command.extend(["chassis", "bootdev", "pxe"])
         return self._execute()
+
+    def console(self) -> (bool, str):
+        self.command.extend(["sol", "activate"])
+        return self._execute()

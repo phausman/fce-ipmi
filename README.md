@@ -1,11 +1,12 @@
 # Introduction
 
-`fce-ipmi` is a tool that simplifies interaction with IPMI utilities like
-`ipmitool` or `ipmiconsole`.
+`fce-ipmi` is a tool that simplifies interaction with `ipmitool` utility while
+working with multiple bare-metal machines.
 
 Supported commands:
 - `power {on|off|cycle|stat}` controls the power of the machine(s),
-- `bootdev {bios|disk|pxe}` forces a boot option. 
+- `bootdev {bios|disk|pxe}` forces a boot option,
+- `console` opens a SOL console with a machine.
 
 Example: check power status of all machines:
 
@@ -19,6 +20,10 @@ Example: force booting to BIOS for multiple machines:
     $ fce-ipmi bootdev bios compute-[13]
     INFO: compute-1: Set Boot Device to bios
     INFO: compute-3: Set Boot Device to bios
+
+Example: open a SOL console with compute-2.example.com:
+
+    $ fce-ipmi console compute-2
 
 See below for more examples.
 
@@ -34,8 +39,9 @@ sudo python3 setup.py install
 
 `fce-ipmi [OPTIONS] COMMAND [ARGS]...`
 
-This tool is a wrapper for IPMI-related utilities: `ipmitool` and 
-`ipmiconsole`. Therefore you must have these tools installed in your system.
+`fce-ipmi` is a wrapper for `ipmitool` utility. Therefore you must have 
+`ipmitool` installed in your system. On Ubuntu you can install it with
+`sudo apt install ipmitool`.
 
 The wrapper pulls necessary information about the machines, such as BMC
 hostname / IP address, username and password from the YAML file. By default
@@ -191,10 +197,10 @@ Set boot to disk for all machines in availability zones `AZ1` and `AZ2`
 ## `console MACHINE-NAME` [NOT IMPLEMENTED]
 
 This command opens a Serial-over-LAN console with a specified machine. You can 
-exit the console by typing '&.' sequence.
+exit the console by typing '~.' sequence.
 
-This command is a wrapper for `ipmiconsole`. The wrapper executes `ipmiconsole` 
-with relevant options such as a username and password.
+This command is a wrapper for `ipmitool sol activate`. The wrapper
+executes `ipmitool` with relevant options such as a username and password.
 
 ### Examples of `console` command
 
