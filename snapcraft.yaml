@@ -1,0 +1,39 @@
+name: fce-ipmi
+version: git
+summary: fce-ipmi simplifies interaction with `ipmitool`
+description: |
+  `fce-ipmi` is a wrapper for `ipmitool`. Therefore you must have `ipmitool`
+  installed in your system.
+
+  The wrapper pulls necessary information about the machines, such as BMC
+  hostname / IP address, username and password from the YAML file. By default
+  `./config/nodes.yaml` file is parsed for this information. You can explicitly
+  specify the location of machines config file with an option 
+  `-f, --machine-config`.
+
+  Alternatively, the file can be specified in the configuration file
+  (`~/.local/share/fce-ipmi/config`) as a vaulue of the key
+  `machine-config-path`. [NOT IMPLEMENTED]
+
+  This tool supports bash completion. Press `tab` key twice to display
+  available commands, parameters, machine names etc. [NOT IMPLEMENTED]
+base: core18
+confinement: strict
+
+parts:
+  fce-ipmi:
+    plugin: python
+    python-version: python3
+    source: .
+    stage-packages:
+      - ipmitool
+
+apps:
+  fce-ipmi:
+    command: bin/fce-ipmi
+    environment:
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    plugs:
+      - home
+      - network
