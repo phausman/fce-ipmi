@@ -239,11 +239,13 @@ class Application:
 
             # Print status
             if success:
-                self.logger.info("{}: {}".format(machine, output))
+                if output:
+                    self.logger.info("{}: {}".format(machine, output))
             else:
-                self.logger.error(
-                    "Failed to run command\n" "{}".format(output)
+                output = (
+                    output if output else "Command failed without any output"
                 )
+                self.logger.error("{}: {}".format(machine, output))
 
     def _get_config_value(self, machine: dict, key: str) -> str:
 

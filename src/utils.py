@@ -8,6 +8,8 @@ class Ipmitool:
 
         self.command = [
             "ipmitool",
+            "-e",
+            "&",
             "-I",
             "lanplus",
             "-H",
@@ -29,20 +31,44 @@ class Ipmitool:
         :return Tuple of command result code and command output.
         """
 
-        output = ""
-
         try:
-            output = subprocess.check_output(
+            process = subprocess.run(
                 self.command,
+                check=True,
+                stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
             )
 
-        except Exception as e:
-            return False, "Executed command: '{}'\n{}".format(
-                " ".join(self.command), e
+        except subprocess.SubprocessError as e:
+            return False, (
+                "Failed to run command: '{}'\n{}".format(
+                    " ".join(self.command), e.stdout.decode("utf-8").strip()
+                )
             )
 
-        return True, output.decode("utf-8").strip()
+        return True, process.stdout.decode("utf-8").strip()
+
+    def _execute_without_checking_output(self) -> (bool, str):
+        """Executes the command without capturing its output
+
+        :return Tuple of command result code and command output.
+        """
+
+        try:
+            # Do not capture stdout
+            subprocess.run(self.command, stderr=subprocess.PIPE)
+
+        except subprocess.SubprocessError as e:
+            return False, (
+                "Failed to run command: '{}'\n{}".format(
+                    " ".join(self.command), e.stderr.decode("utf-8").strip()
+                )
+            )
+
+        # Return the cursor to the beginning of the line
+        print("\r", end="")
+
+        return True, None
 
     def power_stat(self) -> (bool, str):
         self.command.extend(["chassis", "power", "status"])
@@ -74,4 +100,4 @@ class Ipmitool:
 
     def console(self) -> (bool, str):
         self.command.extend(["sol", "activate"])
-        return self._execute()
+        return self._execute_without_checking_output()
