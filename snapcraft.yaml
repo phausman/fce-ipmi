@@ -1,5 +1,5 @@
 name: fce-ipmi
-version: git
+version: 0.1.0
 summary: fce-ipmi simplifies interaction with `ipmitool`
 description: |
   `fce-ipmi` is a wrapper for `ipmitool`. Therefore you must have `ipmitool`
