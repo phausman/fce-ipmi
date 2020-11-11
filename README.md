@@ -1,10 +1,12 @@
 # Introduction
 
-`fce-ipmi` simplifies interaction with `ipmitool`.
+`fce-ipmi` is a tool that simplifies interaction with `ipmitool` utility while
+working with multiple bare-metal machines.
 
 Supported commands:
 - `power {on|off|cycle|stat}` controls the power of the machine(s),
-- `bootdev {bios|disk|pxe}` forces a boot option. 
+- `bootdev {bios|disk|pxe}` forces a boot option,
+- `console` opens a SOL console with a machine.
 
 Example: check power status of all machines:
 
@@ -18,6 +20,10 @@ Example: force booting to BIOS for multiple machines:
     $ fce-ipmi bootdev bios compute-[13]
     INFO: compute-1: Set Boot Device to bios
     INFO: compute-3: Set Boot Device to bios
+
+Example: open a SOL console with compute-2.example.com:
+
+    $ fce-ipmi console compute-2
 
 See below for more examples.
 
@@ -33,8 +39,9 @@ sudo python3 setup.py install
 
 `fce-ipmi [OPTIONS] COMMAND [ARGS]...`
 
-`fce-ipmi` is a wrapper for `ipmitool` utility. Therefore you must have
-`ipmitool` installed in your system.
+`fce-ipmi` is a wrapper for `ipmitool` utility. Therefore you must have 
+`ipmitool` installed in your system. On Ubuntu you can install it with
+`sudo apt install ipmitool`.
 
 The wrapper pulls necessary information about the machines, such as BMC
 hostname / IP address, username and password from the YAML file. By default

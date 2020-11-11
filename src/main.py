@@ -62,14 +62,13 @@ def print_version(ctx, param, value):
 )
 @click.pass_context
 def cli(ctx, debug, dry_run, machine_config, no_color, verbose):
-    """This tool is a wrapper for various IPMI-related utilities:
-    `ipmitool` and `ipmiconsole`.
+    """This tool is a wrapper for `ipmitool` utility.
 
     The wrapper pulls necessary information about the machines, such as BMC
     hostname / IP address, username and password from the YAML file. By default
     `./config/nodes.yaml` file is parsed for this information.
 
-    Alternatively, the file specified as an option `-f|--machine-config` or in
+    Alternatively, the file specified as an option `-f, --machine-config` or in
     the configuration (`~/.local/share/fce-ipmi/config`) under the key
     `machine-config-path` will be used. [NOT IMPLEMENTED]
 
@@ -300,6 +299,24 @@ def bootdev_pxe(ctx, machine, include, exclude):
     application.run(
         app.Application.Command.BOOTDEV_PXE, machine, include, exclude
     )
+
+
+#
+# console
+#
+
+
+@cli.command("console", help=messages.CONSOLE_LONG_HELP)
+@click.argument("machine", metavar="MACHINE-NAME")
+@click.pass_context
+def console(ctx, machine):
+
+    # Application.run() operates on the list of machines
+    machines = []
+    machines.append(machine)
+
+    application = ctx.obj["app"]
+    application.run(app.Application.Command.CONSOLE, machines, None, None)
 
 
 if __name__ == "__main__":

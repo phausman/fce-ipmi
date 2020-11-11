@@ -247,3 +247,21 @@ its full name. For example, if the machine's full name is
 """
     + POWER_COMMANDS_OPTIONS
 )
+
+#
+# console
+#
+
+CONSOLE_LONG_HELP = """Open a Serial-over-LAN console with a specified machine.
+
+You can exit the console by typing '&.' sequence.
+
+This command is a wrapper for `ipmitool sol activate`. The wrapper
+executes `ipmitool` with relevant options such as a username and password.
+
+EXAMPLE
+
+Open the console with `compute-1` machine:
+
+    fce-ipmi console compute-1
+    """

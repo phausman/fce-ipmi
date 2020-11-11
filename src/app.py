@@ -18,6 +18,7 @@ class Application:
         BOOTDEV_BIOS = 5
         BOOTDEV_DISK = 6
         BOOTDEV_PXE = 7
+        CONSOLE = 8
 
     def __init__(
         self,
@@ -162,9 +163,11 @@ class Application:
                     "Ambiguous machine name provided\n"
                     "Found {} machines matching '{}' name:\n  {}\n"
                     "Refine the '{}' machine name pattern by adding more "
-                    "details if you want to target a specific machine.\n"
-                    "Alternatively, if you want to target more machines, "
-                    "provide a glob machine name pattern, e.g. '*{}*'.".format(
+                    "details to target a specific machine.\n"
+                    "Alternatively, for commands that support multiple "
+                    "MACHINE-NAMEs (such as power or bootdev), you can "
+                    "provide a glob pattern to target more than one "
+                    "machine, e.g. '*{}*'.".format(
                         len(matches),
                         machine,
                         "\n  ".join(matches),
@@ -231,13 +234,18 @@ class Application:
             if command == self.Command.BOOTDEV_PXE:
                 success, output = utility.bootdev_pxe()
 
+            if command == self.Command.CONSOLE:
+                success, output = utility.console()
+
             # Print status
             if success:
-                self.logger.info("{}: {}".format(machine, output))
+                if output:
+                    self.logger.info("{}: {}".format(machine, output))
             else:
-                self.logger.error(
-                    "Failed to run command\n" "{}".format(output)
+                output = (
+                    output if output else "Command failed without any output"
                 )
+                self.logger.error("{}: {}".format(machine, output))
 
     def _get_config_value(self, machine: dict, key: str) -> str:
 
@@ -273,6 +281,17 @@ class Application:
                 command, machines, include, exclude
             )
         )
+
+        # Exit early if glob pattern is provided for the command that
+        # does not support it
+        if command is self.Command.CONSOLE and (
+            self._is_glob_pattern(machines[0])
+        ):
+            self.logger.error(
+                "Glob patterns for MACHINE-NAME are not supported in "
+                "this command"
+            )
+            return
 
         # Build a list of machines matching the request
         matching_machines = self._get_matching_machines(
