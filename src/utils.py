@@ -38,9 +38,10 @@ class Ipmitool:
             )
 
         except Exception as e:
-            return False, "Executed command: '{}'\n{}".format(
-                " ".join(self.command), e
+            message = "Executed command: {}\n" "{}".format(
+                " ".join(self.command), e.output.decode("utf-8").strip()
             )
+            return False, message
 
         return True, output.decode("utf-8").strip()
 
