@@ -1,3 +1,18 @@
+"""Command line help messages."""
+MAIN_HELP = """This tool is a wrapper for `ipmitool` utility.
+
+The wrapper pulls necessary information about the machines, such as BMC
+hostname / IP address, username and password from the YAML file. By default
+`./config/nodes.yaml` file is parsed for this information.
+
+Alternatively, the file specified as an option `-f, --machine-config` or in
+the configuration (`~/.local/share/fce-ipmi/config`) under the key
+`machine-config-path` will be used. [NOT IMPLEMENTED]
+
+This tool supports bash completion. Press `tab` key twice to display
+available commands, parameters, machine names etc. [NOT IMPLEMENTED]
+"""
+
 POWER_LONG_HELP = """Control the power of one or more machines. You
 can request powering on, off or power cycling the machine(s). `stat`
 command reads the current power state of the machine(s).
@@ -36,13 +51,9 @@ Power off only compute nodes in availability zone `AZ1`:
     fce-ipmi power off --include compute-*,zone=AZ1
 """
 
-INCLUDE_OPTION_HELP = (
-    "Pattern to match machines to be included in this command"
-)
+INCLUDE_OPTION_HELP = "Pattern to match machines to be included in this command"
 
-EXCLUDE_OPTION_HELP = (
-    "Pattern to match machines to be excluded from this command"
-)
+EXCLUDE_OPTION_HELP = "Pattern to match machines to be excluded from this command"
 
 POWER_COMMANDS_OPTIONS = """COMMAND OPTIONS
 

@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
+"""Main module of the application.
+
+Implements the entry point to the application and defines all
+command line actions.
+"""
+
+import app
 
 import click
 
 import messages
-import app
+
 import version
 
 
@@ -11,13 +18,14 @@ VERSION = version.VERSION
 
 
 def print_version(ctx, param, value):
+    """Print version of the application."""
     if not value or ctx.resilient_parsing:
         return
     click.echo(VERSION)
     ctx.exit()
 
 
-@click.group()
+@click.group(help=messages.MAIN_HELP)
 @click.option(
     "--debug",
     "-d",
@@ -62,20 +70,7 @@ def print_version(ctx, param, value):
 )
 @click.pass_context
 def cli(ctx, debug, dry_run, machine_config, no_color, verbose):
-    """This tool is a wrapper for `ipmitool` utility.
-
-    The wrapper pulls necessary information about the machines, such as BMC
-    hostname / IP address, username and password from the YAML file. By default
-    `./config/nodes.yaml` file is parsed for this information.
-
-    Alternatively, the file specified as an option `-f, --machine-config` or in
-    the configuration (`~/.local/share/fce-ipmi/config`) under the key
-    `machine-config-path` will be used. [NOT IMPLEMENTED]
-
-    This tool supports bash completion. Press `tab` key twice to display
-    available commands, parameters, machine names etc. [NOT IMPLEMENTED]
-    """
-
+    """Define root of all commands."""
     # Ensure that ctx.obj exists and is a dict (in case `cli()` is called
     # by means other than the `if` block below)
     ctx.ensure_object(dict)
@@ -103,6 +98,7 @@ def cli(ctx, debug, dry_run, machine_config, no_color, verbose):
 @cli.group("power", help=messages.POWER_LONG_HELP, invoke_without_command=True)
 @click.pass_context
 def power(ctx):
+    """Define the command group for `fce-ipmi power ...` commands."""
     # Call `power stat` by default if no command action has been specified
     if ctx.invoked_subcommand is None:
         ctx.invoke(power_stat)
@@ -128,10 +124,9 @@ def power(ctx):
 )
 @click.pass_context
 def power_on(ctx, machine, include, exclude):
+    """Handle `fce-ipmi power on` command."""
     application = ctx.obj["app"]
-    application.run(
-        app.Application.Command.POWER_ON, machine, include, exclude
-    )
+    application.run(app.Application.Command.POWER_ON, machine, include, exclude)
 
 
 @power.command("off", help=messages.POWER_OFF_ACTION_LONG_HELP)
@@ -154,10 +149,9 @@ def power_on(ctx, machine, include, exclude):
 )
 @click.pass_context
 def power_off(ctx, machine, include, exclude):
+    """Handle `fce-ipmi powr off` command."""
     application = ctx.obj["app"]
-    application.run(
-        app.Application.Command.POWER_OFF, machine, include, exclude
-    )
+    application.run(app.Application.Command.POWER_OFF, machine, include, exclude)
 
 
 @power.command("cycle", help=messages.POWER_CYCLE_ACTION_LONG_HELP)
@@ -180,10 +174,9 @@ def power_off(ctx, machine, include, exclude):
 )
 @click.pass_context
 def power_cycle(ctx, machine, include, exclude):
+    """Handle `fce-ipmi power cycle` command."""
     application = ctx.obj["app"]
-    application.run(
-        app.Application.Command.POWER_CYCLE, machine, include, exclude
-    )
+    application.run(app.Application.Command.POWER_CYCLE, machine, include, exclude)
 
 
 @power.command("stat", help=messages.POWER_STAT_ACTION_LONG_HELP)
@@ -206,10 +199,9 @@ def power_cycle(ctx, machine, include, exclude):
 )
 @click.pass_context
 def power_stat(ctx, machine, include, exclude):
+    """Handle `fce-ipmi power stat` command."""
     application = ctx.obj["app"]
-    application.run(
-        app.Application.Command.POWER_STAT, machine, include, exclude
-    )
+    application.run(app.Application.Command.POWER_STAT, machine, include, exclude)
 
 
 #
@@ -220,6 +212,7 @@ def power_stat(ctx, machine, include, exclude):
 @cli.group("bootdev", help=messages.BOOTDEV_LONG_HELP)
 @click.pass_context
 def bootdev(ctx):
+    """Define the command group for `fce-ipmi bootdev ...` commands."""
     pass
 
 
@@ -243,10 +236,9 @@ def bootdev(ctx):
 )
 @click.pass_context
 def bootdev_disk(ctx, machine, include, exclude):
+    """Handle `fce-ipmi bootdev disk` command."""
     application = ctx.obj["app"]
-    application.run(
-        app.Application.Command.BOOTDEV_DISK, machine, include, exclude
-    )
+    application.run(app.Application.Command.BOOTDEV_DISK, machine, include, exclude)
 
 
 @bootdev.command("bios", help=messages.BOOTDEV_BIOS_ACTION_LONG_HELP)
@@ -269,10 +261,9 @@ def bootdev_disk(ctx, machine, include, exclude):
 )
 @click.pass_context
 def bootdev_bios(ctx, machine, include, exclude):
+    """Handle `fce-ipmi bootdev bios` command."""
     application = ctx.obj["app"]
-    application.run(
-        app.Application.Command.BOOTDEV_BIOS, machine, include, exclude
-    )
+    application.run(app.Application.Command.BOOTDEV_BIOS, machine, include, exclude)
 
 
 @bootdev.command("pxe", help=messages.BOOTDEV_PXE_ACTION_LONG_HELP)
@@ -295,10 +286,9 @@ def bootdev_bios(ctx, machine, include, exclude):
 )
 @click.pass_context
 def bootdev_pxe(ctx, machine, include, exclude):
+    """Handle `fce-ipmi bootdev pxe` command."""
     application = ctx.obj["app"]
-    application.run(
-        app.Application.Command.BOOTDEV_PXE, machine, include, exclude
-    )
+    application.run(app.Application.Command.BOOTDEV_PXE, machine, include, exclude)
 
 
 #
@@ -310,7 +300,7 @@ def bootdev_pxe(ctx, machine, include, exclude):
 @click.argument("machine", metavar="MACHINE-NAME")
 @click.pass_context
 def console(ctx, machine):
-
+    """Handle `fce-ipmi console` command."""
     # Application.run() operates on the list of machines
     machines = []
     machines.append(machine)

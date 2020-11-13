@@ -1,11 +1,15 @@
+"""Collection of wrappers for IPMI-related utilities."""
+
 import subprocess
 
 
 class Ipmitool:
+    """Wrapper for the `ipmitool`."""
+
     def __init__(
         self, bmc_user: str, bmc_password: str, bmc_address: str, dry_run=False
     ):
-
+        """Build ipmitool baseline command."""
         self.command = [
             "ipmitool",
             "-e",
@@ -26,11 +30,10 @@ class Ipmitool:
             self.command.insert(0, "echo")
 
     def _execute(self) -> (bool, str):
-        """Executes the command
+        """Execute the command.
 
         :return Tuple of command result code and command output.
         """
-
         try:
             process = subprocess.run(
                 self.command,
@@ -49,11 +52,10 @@ class Ipmitool:
         return True, process.stdout.decode("utf-8").strip()
 
     def _execute_without_checking_output(self) -> (bool, str):
-        """Executes the command without capturing its output
+        """Execute the command without capturing its output.
 
         :return Tuple of command result code and command output.
         """
-
         try:
             # Do not capture stdout
             subprocess.run(self.command, stderr=subprocess.PIPE)
@@ -71,33 +73,41 @@ class Ipmitool:
         return True, None
 
     def power_stat(self) -> (bool, str):
+        """Execute 'ipmitool power status'."""
         self.command.extend(["chassis", "power", "status"])
         return self._execute()
 
     def power_on(self) -> (bool, str):
+        """Execute 'ipmitool power on'."""
         self.command.extend(["chassis", "power", "on"])
         return self._execute()
 
     def power_off(self) -> (bool, str):
+        """Execute 'ipmitool power off'."""
         self.command.extend(["chassis", "power", "off"])
         return self._execute()
 
     def power_cycle(self) -> (bool, str):
+        """Execute 'ipmitool power cycle'."""
         self.command.extend(["power", "cycle"])
         return self._execute()
 
     def bootdev_bios(self) -> (bool, str):
+        """Execute 'ipmitool chassis bootdev bios'."""
         self.command.extend(["chassis", "bootdev", "bios"])
         return self._execute()
 
     def bootdev_disk(self) -> (bool, str):
+        """Execute 'ipmitool chassis bootdev disk'."""
         self.command.extend(["chassis", "bootdev", "disk"])
         return self._execute()
 
     def bootdev_pxe(self) -> (bool, str):
+        """Execute 'ipmitool chassis bootdev pxe'."""
         self.command.extend(["chassis", "bootdev", "pxe"])
         return self._execute()
 
     def console(self) -> (bool, str):
+        """Execute 'ipmitool sol activate'."""
         self.command.extend(["sol", "activate"])
         return self._execute_without_checking_output()

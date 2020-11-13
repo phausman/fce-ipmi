@@ -1,17 +1,26 @@
-import colorlog
+"""This module contains main Application class.
+
+The class implements core logic of the program.
+"""
+
 import fnmatch
 import logging
 import logging.handlers
-import yaml
 from enum import Enum
+
+import colorlog
 
 import utils
 
+import yaml
+
 
 class Application:
-    """Main application class"""
+    """Main application class."""
 
     class Command(Enum):
+        """The enum of command types."""
+
         POWER_STAT = 1
         POWER_ON = 2
         POWER_OFF = 3
@@ -29,6 +38,7 @@ class Application:
         no_color=False,
         verbose=False,
     ):
+        """Set up logger and read node config file."""
         # Read global options
         self.debug = debug
         self.dry_run = dry_run
@@ -37,16 +47,13 @@ class Application:
         self.verbose = verbose
 
         # Configure logger
-        self.logger = (
-            self._get_logger() if no_color else self._get_colored_logger()
-        )
+        self.logger = self._get_logger() if no_color else self._get_colored_logger()
 
         # Read YAML file containing BMC details of machines
         self.machines = self._read_machines_config()
 
     def _get_logger(self):
-        """Create and return a logger object"""
-
+        """Create and return a logger object."""
         # Create a logger
         logger = logging.getLogger(__name__)
 
@@ -56,8 +63,8 @@ class Application:
             logger.setLevel(logging.INFO)
 
         # Create console formatter
-        CONSOLE_FORMAT = "%(levelname)s: %(message)s"
-        console_formatter = logging.Formatter(fmt=CONSOLE_FORMAT)
+        console_format = "%(levelname)s: %(message)s"
+        console_formatter = logging.Formatter(fmt=console_format)
 
         # Create a console handler: log to console
         console_handler = logging.StreamHandler()
@@ -69,8 +76,7 @@ class Application:
         return logger
 
     def _get_colored_logger(self):
-        """Create and return a colored logger object"""
-
+        """Create and return a colored logger object."""
         # Create a logger
         logger = colorlog.getLogger(__name__)
 
@@ -80,8 +86,8 @@ class Application:
             logger.setLevel(logging.INFO)
 
         # Create console formatter
-        CONSOLE_FORMAT = "%(log_color)s%(message)s"
-        console_formatter = colorlog.ColoredFormatter(fmt=CONSOLE_FORMAT)
+        console_format = "%(log_color)s%(message)s"
+        console_formatter = colorlog.ColoredFormatter(fmt=console_format)
 
         # Create a console handler: log to console
         console_handler = colorlog.StreamHandler()
@@ -93,11 +99,10 @@ class Application:
         return logger
 
     def _read_machines_config(self) -> dict:
-        """Read YAML machine config file
+        """Read YAML machine config file.
 
         :return A dictionary with machines' details.
         """
-
         # Python representation of the YAML machine config file
         machines = {}
 
@@ -117,7 +122,6 @@ class Application:
 
     def _is_glob_pattern(self, text: str) -> bool:
         """Check if the string is a glob pattern."""
-
         # Characters used in glob patterns. A string containig these
         # characters is a glob pattern.
         glob_pattern_characters = set("*?[")
@@ -128,14 +132,15 @@ class Application:
         return True
 
     def _get_matching_machines(self, machines, include, exclude) -> list:
-        """Evaluate command parameters against the machines
+        """Find matching machines.
+
+        Evaluate command parameters against the machines
         found in the config file and return the list or matching
         machines.
 
         :param machines: Tuple of machine names. Multiple machine names can
         be provided.
         """
-
         # A set for storing matching machine names. Casted to a list,
         # this is used as a return value of this function.
         matching_machines = set()
@@ -174,9 +179,7 @@ class Application:
             # provided was not a glob pattern. Cancel a command (by returning
             # an empty list) and inform the user that more than one machine
             # matching the pattern was found.
-            if (len(matches) > 1) and (
-                self._is_glob_pattern(machine) is False
-            ):
+            if (len(matches) > 1) and (self._is_glob_pattern(machine) is False):
                 message = (
                     "Ambiguous machine name provided. "
                     "Found {} machines matching '{}' name:\n  {}\n"
@@ -214,55 +217,57 @@ class Application:
 
         return matching_machines
 
-    def _run_command(self, command: Command, machines: list):
+    def _execute_wrapper(self, command: Command, machine: str) -> (bool, str):
 
-        self.logger.debug(
-            "Running command {} on machines: {}".format(command, machines)
+        utility = utils.Ipmitool(
+            self._get_config_value(self.machines[machine], "bmc_user"),
+            self._get_config_value(self.machines[machine], "bmc_password"),
+            self._get_config_value(self.machines[machine], "bmc_address"),
+            self.dry_run,
         )
 
+        # Execute the command
+
+        if command == self.Command.POWER_STAT:
+            return utility.power_stat()
+
+        if command == self.Command.POWER_ON:
+            return utility.power_on()
+
+        if command == self.Command.POWER_OFF:
+            return utility.power_off()
+
+        if command == self.Command.POWER_CYCLE:
+            return utility.power_cycle()
+
+        if command == self.Command.BOOTDEV_BIOS:
+            return utility.bootdev_bios()
+
+        if command == self.Command.BOOTDEV_DISK:
+            return utility.bootdev_disk()
+
+        if command == self.Command.BOOTDEV_PXE:
+            return utility.bootdev_pxe()
+
+        if command == self.Command.CONSOLE:
+            return utility.console()
+
+    def _run_command(self, command: Command, machines: list):
+
+        self.logger.debug(f"Running command {command} on machines: {machines}")
+
+        # For each machine in the list
         for machine in machines:
 
-            utility = utils.Ipmitool(
-                self._get_config_value(self.machines[machine], "bmc_user"),
-                self._get_config_value(self.machines[machine], "bmc_password"),
-                self._get_config_value(self.machines[machine], "bmc_address"),
-                self.dry_run,
-            )
+            # Execute the command...
+            success, output = self._execute_wrapper(command, machine)
 
-            # Execute the command
-
-            if command == self.Command.POWER_STAT:
-                success, output = utility.power_stat()
-
-            if command == self.Command.POWER_ON:
-                success, output = utility.power_on()
-
-            if command == self.Command.POWER_OFF:
-                success, output = utility.power_off()
-
-            if command == self.Command.POWER_CYCLE:
-                success, output = utility.power_cycle()
-
-            if command == self.Command.BOOTDEV_BIOS:
-                success, output = utility.bootdev_bios()
-
-            if command == self.Command.BOOTDEV_DISK:
-                success, output = utility.bootdev_disk()
-
-            if command == self.Command.BOOTDEV_PXE:
-                success, output = utility.bootdev_pxe()
-
-            if command == self.Command.CONSOLE:
-                success, output = utility.console()
-
-            # Print status
+            # And print the result
             if success:
                 if output:
                     self.logger.info("{}: {}".format(machine, output))
             else:
-                output = (
-                    output if output else "Command failed without any output"
-                )
+                output = output if output else "Command failed without any output"
                 self.logger.error("{}: {}".format(machine, output))
 
     def _get_config_value(self, machine: dict, key: str) -> str:
@@ -284,8 +289,7 @@ class Application:
 
             except (FileNotFoundError, PermissionError) as e:
                 self.logger.critical(
-                    f"Cannot open '{file_path}' file referred in "
-                    f"the '{key}' value"
+                    f"Cannot open '{file_path}' file referred in the '{key}' value"
                 )
                 self.logger.error(e)
                 exit(1)
@@ -293,6 +297,7 @@ class Application:
         return value
 
     def run(self, command: Command, machines, include, exclude):
+        """Build a list of applicable machines and execute an action upon them."""
         self.logger.debug(
             "Running command {} with parameters: "
             "machines={}, include={}, exclude={}".format(
@@ -302,19 +307,14 @@ class Application:
 
         # Exit early if glob pattern is provided for the command that
         # does not support it
-        if command is self.Command.CONSOLE and (
-            self._is_glob_pattern(machines[0])
-        ):
+        if (command is self.Command.CONSOLE) and self._is_glob_pattern(machines[0]):
             self.logger.warning(
-                "Glob patterns for MACHINE-NAME are not supported in "
-                "this command"
+                "Glob patterns for MACHINE-NAME are not supported in this command"
             )
             return
 
         # Build a list of machines matching the request
-        matching_machines = self._get_matching_machines(
-            machines, include, exclude
-        )
+        matching_machines = self._get_matching_machines(machines, include, exclude)
 
         # Execute an action on the machines
         self._run_command(command, matching_machines)
