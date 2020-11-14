@@ -53,9 +53,6 @@ class Application:
         # Configure logger
         self.logger = self._get_logger() if no_color else self._get_colored_logger()
 
-        # Read YAML file containing BMC details of machines
-        self.machines = self._read_machines_config()
-
     def _get_logger(self):
         """Create and return a logger object."""
         # Create a logger
@@ -105,10 +102,11 @@ class Application:
     def _read_machines_config(self) -> dict:
         """Read YAML machine config file.
 
-        :return A dictionary with machines' details.
+        :return Dictionary with machines' details or None if details
+                could not be retrieved.
         """
         # Python representation of the YAML machine config file
-        machines = {}
+        machines = None
 
         try:
             with open(self.machine_config) as file:
@@ -118,12 +116,11 @@ class Application:
                 )
 
         except yaml.YAMLError as e:
-            self.logger.critical(f"Error in machines configuration file: {e}")
+            self.logger.error(f"Error in machines configuration file: {e}")
 
         except (FileNotFoundError, PermissionError, NotADirectoryError) as e:
-            self.logger.critical(
-                f"Cannot open '{self.machine_config}' file "
-                f"with machines' BMC config"
+            self.logger.error(
+                f"Cannot open machines configuration file: '{self.machine_config}'"
             )
             self.logger.error(e)
 
@@ -305,7 +302,7 @@ class Application:
                     value = file.read().strip()
 
             except (FileNotFoundError, PermissionError) as e:
-                self.logger.critical(
+                self.logger.error(
                     f"Cannot open '{file_path}' file referred in the '{key}' value"
                 )
                 self.logger.error(e)
@@ -321,6 +318,14 @@ class Application:
                 command, machines, include, exclude
             )
         )
+
+        # Read YAML file containing BMC details of machines
+        machines_from_config = self._read_machines_config()
+        if machines_from_config:
+            self.machines = machines_from_config
+        else:
+            # Could not read machines from config file
+            return
 
         # Exit early if glob pattern is provided for the command that
         # does not support it
