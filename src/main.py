@@ -16,6 +16,8 @@ import version
 
 VERSION = version.VERSION
 
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
 
 def print_version(ctx, param, value):
     """Print version of the application."""
@@ -25,7 +27,7 @@ def print_version(ctx, param, value):
     ctx.exit()
 
 
-@click.group(help=messages.MAIN_HELP)
+@click.group(help=messages.MAIN_HELP, context_settings=CONTEXT_SETTINGS)
 @click.option(
     "--debug",
     "-d",
