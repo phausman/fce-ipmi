@@ -49,6 +49,12 @@ class Ipmitool:
                 )
             )
 
+        # Utility (e.g. ipmitool) is not available in the system
+        except FileNotFoundError as e:
+            return False, (
+                "Failed to run command: '{}'\n{}".format(" ".join(self.command), e)
+            )
+
         return True, process.stdout.decode("utf-8").strip()
 
     def _execute_without_checking_output(self) -> (bool, str):
@@ -65,6 +71,12 @@ class Ipmitool:
                 "Failed to run command: '{}'\n{}".format(
                     " ".join(self.command), e.stderr.decode("utf-8").strip()
                 )
+            )
+
+        # Utility (e.g. ipmitool) is not available in the system
+        except FileNotFoundError as e:
+            return False, (
+                "Failed to run command: '{}'\n{}".format(" ".join(self.command), e)
             )
 
         # Return the cursor to the beginning of the line
