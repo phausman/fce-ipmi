@@ -18,6 +18,8 @@ import yaml
 class Application:
     """Main application class."""
 
+    DEFAULT_MACHINE_CONFIG_PATH = "./config/nodes.yaml"
+
     class Command(Enum):
         """The enum of command types."""
 
@@ -42,7 +44,9 @@ class Application:
         # Read global options
         self.debug = debug
         self.dry_run = dry_run
-        self.machine_config = machine_config
+        self.machine_config = (
+            machine_config if machine_config else self.DEFAULT_MACHINE_CONFIG_PATH
+        )
         self.no_color = no_color
         self.verbose = verbose
 
@@ -109,6 +113,12 @@ class Application:
         try:
             with open(self.machine_config) as file:
                 machines = yaml.load(file, Loader=yaml.FullLoader)
+                self.logger.debug(
+                    f"Read machines from {self.machine_config}: {machines}"
+                )
+
+        except yaml.YAMLError as e:
+            self.logger.critical(f"Error in machines configuration file: {e}")
 
         except (FileNotFoundError, PermissionError, NotADirectoryError) as e:
             self.logger.critical(
@@ -116,7 +126,6 @@ class Application:
                 f"with machines' BMC config"
             )
             self.logger.error(e)
-            exit(1)
 
         return machines
 
@@ -150,12 +159,20 @@ class Application:
 
         # If no machine name was provided, assume all machines should match
         if len(machines) == 0:
+            self.logger.debug(
+                "No machine name(s) provided, assuming all machines match"
+            )
             machines.append("*")
 
-        # Build a list of machines' names pulled from the config file
+        # Build a list of machine names pulled from the config file
         config_machine_names = []
         for k, v in self.machines.items():
             config_machine_names.append(k)
+
+        # Return early if no machines were found in the config file
+        if len(config_machine_names) == 0:
+            self.logger.warning(f"No machines found in {self.machine_config}")
+            return []
 
         # Iteratively build a set of maching machine names
         for machine in machines:
