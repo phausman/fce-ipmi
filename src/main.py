@@ -75,7 +75,7 @@ def print_version(ctx, param, value):
 def cli(ctx, debug, dry_run, machine_config, no_color, verbose):
     """Define root of all commands."""
     # Ensure that ctx.obj exists and is a dict (in case `cli()` is called
-    # by means other than the `if` block below)
+    # by means other than the `if __name__ == "__main__"` block)
     ctx.ensure_object(dict)
 
     ctx.obj["debug"] = debug
@@ -312,5 +312,10 @@ def console(ctx, machine):
     ctx.exit(application.run(Command.CONSOLE, machines, None, None))
 
 
-if __name__ == "__main__":
-    cli(obj={})
+def init():
+    """Execute cli() if module is run directly."""
+    if __name__ == "__main__":
+        cli(obj={})
+
+
+init()

@@ -170,11 +170,6 @@ class Application:
         for k, v in self.machines.items():
             config_machine_names.append(k)
 
-        # Return early if no machines were found in the config file
-        if len(config_machine_names) == 0:
-            self.logger.warning(f"No machines found in {self.machine_config}")
-            return []
-
         # Iteratively build a set of maching machine names
         for machine in machines:
 
@@ -291,7 +286,6 @@ class Application:
                     self.logger.info("{}: {}".format(machine, output))
             else:
                 return_code = CLI_ERROR
-                output = output if output else "Command failed without any output"
                 self.logger.error("{}: {}".format(machine, output))
 
         return return_code
@@ -340,18 +334,23 @@ class Application:
             self.machines = machines_from_config
         else:
             # Could not read machines from config file
+            self.logger.error("Could not read machines from machines config file")
             return CLI_ERROR
 
         # Exit early if glob pattern is provided for the command that
         # does not support it
         if (command is Command.CONSOLE) and self._is_glob_pattern(machines[0]):
             self.logger.warning(
-                "Glob patterns for MACHINE-NAME are not supported in this command"
+                "Glob patterns for MACHINE-NAME are not supported for this command"
             )
             return CLI_ERROR
 
         # Build a list of machines matching the request
         matching_machines = self._get_matching_machines(machines, include, exclude)
+
+        # Exit early if no matching machines were found
+        if len(matching_machines) == 0:
+            return CLI_ERROR
 
         # Execute an action on the machines
         return self._run_command(command, matching_machines)

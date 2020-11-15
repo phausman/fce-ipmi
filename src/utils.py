@@ -101,7 +101,7 @@ class Ipmitool:
 
     def power_cycle(self) -> (bool, str):
         """Execute 'ipmitool power cycle'."""
-        self.command.extend(["power", "cycle"])
+        self.command.extend(["chassis", "power", "cycle"])
         return self._execute()
 
     def bootdev_bios(self) -> (bool, str):
