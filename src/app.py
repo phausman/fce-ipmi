@@ -14,23 +14,27 @@ import utils
 
 import yaml
 
+CLI_OK = 0
+CLI_ERROR = 1
+
+
+class Command(Enum):
+    """The enum of command types."""
+
+    POWER_STAT = 1
+    POWER_ON = 2
+    POWER_OFF = 3
+    POWER_CYCLE = 4
+    BOOTDEV_BIOS = 5
+    BOOTDEV_DISK = 6
+    BOOTDEV_PXE = 7
+    CONSOLE = 8
+
 
 class Application:
     """Main application class."""
 
     DEFAULT_MACHINE_CONFIG_PATH = "./config/nodes.yaml"
-
-    class Command(Enum):
-        """The enum of command types."""
-
-        POWER_STAT = 1
-        POWER_ON = 2
-        POWER_OFF = 3
-        POWER_CYCLE = 4
-        BOOTDEV_BIOS = 5
-        BOOTDEV_DISK = 6
-        BOOTDEV_PXE = 7
-        CONSOLE = 8
 
     def __init__(
         self,
@@ -242,33 +246,38 @@ class Application:
 
         # Execute the command
 
-        if command == self.Command.POWER_STAT:
+        if command == Command.POWER_STAT:
             return utility.power_stat()
 
-        if command == self.Command.POWER_ON:
+        if command == Command.POWER_ON:
             return utility.power_on()
 
-        if command == self.Command.POWER_OFF:
+        if command == Command.POWER_OFF:
             return utility.power_off()
 
-        if command == self.Command.POWER_CYCLE:
+        if command == Command.POWER_CYCLE:
             return utility.power_cycle()
 
-        if command == self.Command.BOOTDEV_BIOS:
+        if command == Command.BOOTDEV_BIOS:
             return utility.bootdev_bios()
 
-        if command == self.Command.BOOTDEV_DISK:
+        if command == Command.BOOTDEV_DISK:
             return utility.bootdev_disk()
 
-        if command == self.Command.BOOTDEV_PXE:
+        if command == Command.BOOTDEV_PXE:
             return utility.bootdev_pxe()
 
-        if command == self.Command.CONSOLE:
+        if command == Command.CONSOLE:
             return utility.console()
 
     def _run_command(self, command: Command, machines: list):
+        """Run command on all machines.
 
+        :return: CLI_OK if all commands were successful, CLI_ERROR otherwise
+        """
         self.logger.debug(f"Running command {command} on machines: {machines}")
+
+        return_code = CLI_OK
 
         # For each machine in the list
         for machine in machines:
@@ -281,8 +290,11 @@ class Application:
                 if output:
                     self.logger.info("{}: {}".format(machine, output))
             else:
+                return_code = CLI_ERROR
                 output = output if output else "Command failed without any output"
                 self.logger.error("{}: {}".format(machine, output))
+
+        return return_code
 
     def _get_config_value(self, machine: dict, key: str) -> str:
 
@@ -311,7 +323,10 @@ class Application:
         return value
 
     def run(self, command: Command, machines, include, exclude):
-        """Build a list of applicable machines and execute an action upon them."""
+        """Build a list of applicable machines and execute an action upon them.
+
+        :return: CLI_OK if successful, CLI_ERROR on error.
+        """
         self.logger.debug(
             "Running command {} with parameters: "
             "machines={}, include={}, exclude={}".format(
@@ -325,18 +340,18 @@ class Application:
             self.machines = machines_from_config
         else:
             # Could not read machines from config file
-            return
+            return CLI_ERROR
 
         # Exit early if glob pattern is provided for the command that
         # does not support it
-        if (command is self.Command.CONSOLE) and self._is_glob_pattern(machines[0]):
+        if (command is Command.CONSOLE) and self._is_glob_pattern(machines[0]):
             self.logger.warning(
                 "Glob patterns for MACHINE-NAME are not supported in this command"
             )
-            return
+            return CLI_ERROR
 
         # Build a list of machines matching the request
         matching_machines = self._get_matching_machines(machines, include, exclude)
 
         # Execute an action on the machines
-        self._run_command(command, matching_machines)
+        return self._run_command(command, matching_machines)
