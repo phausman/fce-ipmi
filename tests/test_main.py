@@ -55,11 +55,11 @@ def test_power_off_help(cli_runner, option):
 
 
 @pytest.mark.parametrize("option", ["-h", "--help"])
-def test_power_stat_help(cli_runner, option):
-    result = cli_runner.invoke(main.cli, ["power", "stat", option])
+def test_power_status_help(cli_runner, option):
+    result = cli_runner.invoke(main.cli, ["power", "status", option])
     assert result.exit_code == 0
     # Strip all whitespace before comparing strings because click rewraps test
-    assert "".join(messages.POWER_STAT_ACTION_LONG_HELP.split()) in "".join(
+    assert "".join(messages.POWER_STATUS_ACTION_LONG_HELP.split()) in "".join(
         result.output.split()
     )
 
@@ -102,25 +102,6 @@ def test_bootdev_pxe_help(cli_runner, option):
     )
 
 
-#
-# commands tests
-#
-
-# - test command with default machines config
-# - test command with provided machines config (with -f option)
-
-# SUCCESSFUL
-# - no machines provided
-# - single machine with short name
-# - explicit (without globs) multiple machines
-# - glob machine
-# - multiple glob machines
-
-# ERRORS
-# - glob for console command
-# - ambiguous machine name
-
-
 def test_power_bmc_password_from_file(cli_runner):
     machines_config_yaml = """test-machine-1:
   bmc_user: user
@@ -142,7 +123,7 @@ def test_power_bmc_password_from_file(cli_runner):
                 "-s",
                 "--no-color",
                 "power",
-                "stat",
+                "status",
                 "test-machine-1",
             ],
         )
@@ -179,7 +160,7 @@ def test_power_bmc_password_from_file_error(cli_runner):
                 "-s",
                 "--no-color",
                 "power",
-                "stat",
+                "status",
                 "test-machine-1",
             ],
         )
@@ -188,6 +169,38 @@ def test_power_bmc_password_from_file_error(cli_runner):
             "Cannot open 'bmc-password.txt' file referred in "
             "the 'bmc_password' value" in result.output
         )
+
+
+def test_power_status_implicit(cli_runner, fake_process):
+    machines_config_yaml = """test-machine-1:
+  bmc_user: user
+  bmc_password: password
+  bmc_address: 10.10.10.10
+    """
+    fake_process.register_subprocess(["ipmitool", fake_process.any()])
+
+    with patch("builtins.open", mock_open(read_data=machines_config_yaml)):
+        result = cli_runner.invoke(
+            main.cli,
+            ["power"],
+        )
+        assert result.exit_code == 0
+        assert [
+            "ipmitool",
+            "-e",
+            "&",
+            "-I",
+            "lanplus",
+            "-H",
+            "10.10.10.10",
+            "-U",
+            "user",
+            "-P",
+            "password",
+            "chassis",
+            "power",
+            "status",
+        ] in fake_process.calls
 
 
 def test_power_no_machines(cli_runner, fake_process):
@@ -201,7 +214,7 @@ def test_power_no_machines(cli_runner, fake_process):
     with patch("builtins.open", mock_open(read_data=machines_config_yaml)):
         result = cli_runner.invoke(
             main.cli,
-            ["power", "stat"],
+            ["power", "status"],
         )
         assert result.exit_code == 0
         assert [
@@ -235,7 +248,7 @@ def test_power_single_machine(cli_runner, fake_process):
             main.cli,
             [
                 "power",
-                "stat",
+                "status",
                 "test-machine-1",
             ],
         )
@@ -258,7 +271,7 @@ def test_power_single_machine(cli_runner, fake_process):
         ] in fake_process.calls
 
 
-@pytest.mark.parametrize("command", ["on", "off", "cycle"])
+@pytest.mark.parametrize("command", ["on", "off", "cycle", "status"])
 def test_power_commands_single_machine(cli_runner, fake_process, command):
     machines_config_yaml = """test-machine-1:
   bmc_user: user
@@ -384,7 +397,7 @@ test-machine-2:
             main.cli,
             [
                 "power",
-                "stat",
+                "status",
                 "test-machine-1",
                 "test-machine-2",
             ],
@@ -446,7 +459,7 @@ test-machine-3:
             main.cli,
             [
                 "power",
-                "stat",
+                "status",
                 "test-machine-[12]",
             ],
         )
@@ -507,7 +520,7 @@ test-machine-3:
             main.cli,
             [
                 "power",
-                "stat",
+                "status",
                 "test-machine-[1]",
                 "test-machine-[2]",
             ],
@@ -560,7 +573,7 @@ def test_power_single_machine_short_name(cli_runner, fake_process):
             main.cli,
             [
                 "power",
-                "stat",
+                "status",
                 "test-machine-1",
             ],
         )
@@ -597,12 +610,12 @@ def test_power_single_machine_debug(cli_runner, fake_process):
             [
                 "--debug",
                 "power",
-                "stat",
+                "status",
                 "test-machine-1",
             ],
         )
         assert result.exit_code == 0
-        assert "Running command Command.POWER_STAT with parameters" in result.output
+        assert "Running command Command.POWER_STATUS with parameters" in result.output
 
 
 def test_power_single_machine_debug_no_color(cli_runner, fake_process):
@@ -620,12 +633,12 @@ def test_power_single_machine_debug_no_color(cli_runner, fake_process):
                 "--debug",
                 "--no-color",
                 "power",
-                "stat",
+                "status",
                 "test-machine-1",
             ],
         )
         assert result.exit_code == 0
-        assert "Running command Command.POWER_STAT with parameters" in result.output
+        assert "Running command Command.POWER_STATUS with parameters" in result.output
 
 
 def callback_function_file_not_found(process):
@@ -657,7 +670,7 @@ def test_power_failed_subprocess(cli_runner, fake_process, callback_function):
             main.cli,
             [
                 "power",
-                "stat",
+                "status",
                 "test-machine-1",
             ],
         )
@@ -777,32 +790,7 @@ test-machine-2:
         assert "Ambiguous machine name provided" in result.output
 
 
-def test_power_stat_implicit_failed(cli_runner):
-    result = cli_runner.invoke(main.cli, ["power"])
-    assert result.exit_code == 1
-
-
-@pytest.mark.parametrize("actions", ["on", "off", "cycle", "stat"])
-@pytest.mark.parametrize("machines", ["compute-1"])
-def test_power_actions_failed(cli_runner, actions, machines):
-    result = cli_runner.invoke(main.cli, ["power", actions, machines])
-    assert result.exit_code == 1
-
-
-@pytest.mark.parametrize("actions", ["bios", "disk", "pxe"])
-@pytest.mark.parametrize("machines", ["compute-1"])
-def test_bootdev_actions_failed(cli_runner, actions, machines):
-    result = cli_runner.invoke(main.cli, ["bootdev", actions, machines])
-    assert result.exit_code == 1
-
-
-@pytest.mark.parametrize("machines", ["compute-1"])
-def test_console_failed(cli_runner, machines):
-    result = cli_runner.invoke(main.cli, ["console", machines])
-    assert result.exit_code == 1
-
-
-def test_power_stat_dry_run(cli_runner):
+def test_power_status_dry_run(cli_runner):
     result = cli_runner.invoke(
         main.cli,
         [
@@ -811,7 +799,7 @@ def test_power_stat_dry_run(cli_runner):
             "-f",
             "tests/config/nodes.yaml",
             "power",
-            "stat",
+            "status",
             "compute-1",
         ],
     )

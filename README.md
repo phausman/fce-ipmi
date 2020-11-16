@@ -4,13 +4,13 @@
 working with multiple bare-metal machines.
 
 Supported commands:
-- `power {on|off|cycle|stat}` controls the power of the machine(s),
+- `power {on|off|cycle|status}` controls the power of the machine(s),
 - `bootdev {bios|disk|pxe}` forces a boot option,
 - `console` opens a SOL console with a machine.
 
 Example: check power status of all machines:
 
-    $ fce-ipmi power stat compute-*
+    $ fce-ipmi power status compute-*
     INFO: compute-1: Chassis Power is off
     INFO: compute-2: Chassis Power is on
     INFO: compute-3: Chassis Power is off
@@ -79,10 +79,10 @@ Global options must be provided right after the program name.
 ## `power [OPTIONS] {on|off|cycle|stat} [MACHINE-NAME ...]`
 
 Controls the power of one or more machines. You can request 
-powering on, off or power cycling the machine(s). `stat` command reads the 
+powering on, off or power cycling the machine(s). `status` command reads the 
 current power state of the machine(s).
 
-If `power` command is run without a specified power action, the `stat` action 
+If `power` command is run without a specified power action, the `status` action 
 is executed by default.
 
 If `MACHINE-NAME` is not specified, the action is executed against all

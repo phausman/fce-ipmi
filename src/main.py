@@ -94,7 +94,7 @@ def cli(ctx, debug, dry_run, machine_config, no_color, verbose):
 
 
 #
-# power (on|off|cycle|stat)
+# power (on|off|cycle|status)
 #
 
 
@@ -102,9 +102,9 @@ def cli(ctx, debug, dry_run, machine_config, no_color, verbose):
 @click.pass_context
 def power(ctx):
     """Define the command group for `fce-ipmi power ...` commands."""
-    # Call `power stat` by default if no command action has been specified
+    # Call `power status` by default if no command action has been specified
     if ctx.invoked_subcommand is None:
-        ctx.invoke(power_stat)
+        ctx.invoke(power_status)
 
 
 @power.command("on", help=messages.POWER_ON_ACTION_LONG_HELP)
@@ -182,7 +182,7 @@ def power_cycle(ctx, machine, include, exclude):
     ctx.exit(application.run(Command.POWER_CYCLE, machine, include, exclude))
 
 
-@power.command("stat", help=messages.POWER_STAT_ACTION_LONG_HELP)
+@power.command("status", help=messages.POWER_STATUS_ACTION_LONG_HELP)
 @click.argument("machine", nargs=-1, metavar="[MACHINE-NAME ...]")
 @click.option(
     "-i",
@@ -201,10 +201,10 @@ def power_cycle(ctx, machine, include, exclude):
     multiple=True,
 )
 @click.pass_context
-def power_stat(ctx, machine, include, exclude):
-    """Handle `fce-ipmi power stat` command."""
+def power_status(ctx, machine, include, exclude):
+    """Handle `fce-ipmi power status` command."""
     application = ctx.obj["app"]
-    ctx.exit(application.run(Command.POWER_STAT, machine, include, exclude))
+    ctx.exit(application.run(Command.POWER_STATUS, machine, include, exclude))
 
 
 #

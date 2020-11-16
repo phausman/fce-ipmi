@@ -14,10 +14,10 @@ available commands, parameters, machine names etc. [NOT IMPLEMENTED]
 """
 
 POWER_LONG_HELP = """Control the power of one or more machines. You
-can request powering on, off or power cycling the machine(s). `stat`
+can request powering on, off or power cycling the machine(s). `status`
 command reads the current power state of the machine(s).
 
-If `power` command is run without a specified power action, the `stat`
+If `power` command is run without a specified power action, the `status`
 action is executed by default.
 
 This command is a wrapper for `ipmitool` utility. It executes `ipmitool`
@@ -148,7 +148,7 @@ its full name. For example, if the machine's full name is
     + POWER_COMMANDS_OPTIONS
 )
 
-POWER_STAT_ACTION_LONG_HELP = (
+POWER_STATUS_ACTION_LONG_HELP = (
     """Read current power state of one or more machines.
 
 If MACHINE-NAME is not specified, the action is executed against all
@@ -157,7 +157,7 @@ machines.
 Multiple MACHINE-NAMEs can be specified.
 
 MACHINE-NAME accepts glob patterns. For example, running the command
-`power stat compute-*`, will result in reading power state of all machines
+`power status compute-*`, will result in reading power state of all machines
 whose name begins with `compute-`.
 
 You can specify a partial machine name and the program will try to guess

@@ -84,7 +84,7 @@ class Ipmitool:
 
         return True, None
 
-    def power_stat(self) -> (bool, str):
+    def power_status(self) -> (bool, str):
         """Execute 'ipmitool power status'."""
         self.command.extend(["chassis", "power", "status"])
         return self._execute()

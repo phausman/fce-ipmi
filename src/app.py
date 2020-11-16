@@ -21,7 +21,7 @@ CLI_ERROR = 1
 class Command(Enum):
     """The enum of command types."""
 
-    POWER_STAT = 1
+    POWER_STATUS = 1
     POWER_ON = 2
     POWER_OFF = 3
     POWER_CYCLE = 4
@@ -241,8 +241,8 @@ class Application:
 
         # Execute the command
 
-        if command == Command.POWER_STAT:
-            return utility.power_stat()
+        if command == Command.POWER_STATUS:
+            return utility.power_status()
 
         if command == Command.POWER_ON:
             return utility.power_on()
