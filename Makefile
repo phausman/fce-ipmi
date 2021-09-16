@@ -11,6 +11,14 @@ uninstall:
 freeze:
 	pip freeze | grep -v 'fce-ipmi' > requirements.txt
 
+VERSION = $(shell grep VERSION src/version.py | awk '{print $$3}') 
+snap:
+	@sed -i 's/^version:.*$$/version: $(VERSION)/g' snapcraft.yaml
+	snapcraft
+
+snap-clean:
+	snapcraft clean
+
 clean:
 	python3 setup.py clean
 	find . -name '*.pyc' -exec rm --verbose --force {} +
