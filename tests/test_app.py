@@ -9,6 +9,12 @@ def test_read_machines_config_file_exists():
     assert bool(application._read_machines_config()) is True
 
 
+def test_read_machines_config_file_with_list_exists():
+    application = Application(machine_config="tests/config/nodes-list.yaml")
+    # Assert that returned dict is not empty
+    assert bool(application._read_machines_config()) is True
+
+
 @pytest.mark.parametrize(
     "machine_config",
     [

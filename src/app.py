@@ -7,6 +7,7 @@ import fnmatch
 import logging
 import logging.handlers
 from enum import Enum
+from typing import Tuple
 
 import colorlog
 
@@ -128,7 +129,29 @@ class Application:
             )
             self.logger.error(e)
 
-        return machines
+        # The YAML file with nodes' details may be formatted as dict or list.
+        # We need to convert the type to the dict, so that we have a way for
+        # uniqely identifying machines. For the key, we will use 'name'.
+
+        machines_dict = {}
+        if type(machines) is list:
+            for machine in machines:
+                # If a machine with the same name is already in the dictinary,
+                # warn the user
+                if machines_dict.get(machine["name"]):
+                    self.logger.warning(
+                        f"Machine with the name {machine['name']} is defined multiple "
+                        "times in the config file ({self.machine_config})! Only one "
+                        "of these machines can be taken into account. Make sure "
+                        "each machine name is unique."
+                    )
+
+                machines_dict[machine["name"]] = machine
+        else:
+            # Assuming that the type is 'dict'
+            machines_dict = machines
+
+        return machines_dict
 
     def _is_glob_pattern(self, text: str) -> bool:
         """Check if the string is a glob pattern."""
@@ -230,7 +253,7 @@ class Application:
 
         return matching_machines
 
-    def _execute_wrapper(self, command: Command, machine: str) -> (bool, str):
+    def _execute_wrapper(self, command: Command, machine: str) -> Tuple[bool, str]:
 
         utility = utils.Ipmitool(
             self._get_config_value(self.machines[machine], "bmc_user"),
