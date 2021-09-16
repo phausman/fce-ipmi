@@ -207,3 +207,34 @@ This command is a wrapper for `ipmitool sol activate`. The wrapper executes
 Open the console with `compute-1` machine:
 
     fce-ipmi console compute-1
+
+## Development
+
+Run tests:
+```
+tox
+```
+
+Build:
+```
+make build
+```
+
+Clean up:
+```
+make clean
+```
+
+## Building snap
+
+Update version in `snapcraft.yaml` so that it matches the version in `src/version.py`.
+
+Build snap:
+```
+make snap
+```
+
+Clean up after snap build:
+```
+make snap-clean
+```
