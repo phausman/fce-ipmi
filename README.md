@@ -227,8 +227,6 @@ make clean
 
 ## Building snap
 
-Update version in `snapcraft.yaml` so that it matches the version in `src/version.py`.
-
 Build snap:
 ```
 make snap
