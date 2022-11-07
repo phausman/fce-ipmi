@@ -106,7 +106,7 @@ class Ipmitool:
 
     def bootdev_bios(self) -> (bool, str):
         """Execute 'ipmitool chassis bootdev bios'."""
-        self.command.extend(["chassis", "bootdev", "bios"])
+        self.command.extend(["chassis", "bootdev", "bios", "options=efiboot"])
         return self._execute()
 
     def bootdev_disk(self) -> (bool, str):
