@@ -308,7 +308,7 @@ def test_power_commands_single_machine(cli_runner, fake_process, command):
         ] in fake_process.calls, str(fake_process.calls)
 
 
-@pytest.mark.parametrize("command", ["bios", "disk", "pxe"])
+@pytest.mark.parametrize("command", ["disk", "pxe"])
 def test_bootdev_commands_single_machine(cli_runner, fake_process, command):
     machines_config_yaml = """test-machine-1:
   bmc_user: user
@@ -342,6 +342,44 @@ def test_bootdev_commands_single_machine(cli_runner, fake_process, command):
             "chassis",
             "bootdev",
             command,
+        ] in fake_process.calls, str(fake_process.calls)
+
+
+@pytest.mark.parametrize("command", ["bios"])
+def test_bootdev_bios_single_machine(cli_runner, fake_process, command):
+    machines_config_yaml = """test-machine-1:
+  bmc_user: user
+  bmc_password: password
+  bmc_address: 10.10.10.10
+    """
+    fake_process.register_subprocess(["ipmitool", fake_process.any()])
+
+    with patch("builtins.open", mock_open(read_data=machines_config_yaml)):
+        result = cli_runner.invoke(
+            main.cli,
+            [
+                "bootdev",
+                command,
+                "test-machine-1",
+            ],
+        )
+        assert result.exit_code == 0
+        assert [
+            "ipmitool",
+            "-e",
+            "&",
+            "-I",
+            "lanplus",
+            "-H",
+            "10.10.10.10",
+            "-U",
+            "user",
+            "-P",
+            "password",
+            "chassis",
+            "bootdev",
+            command,
+            "options=efiboot",
         ] in fake_process.calls, str(fake_process.calls)
 
 
